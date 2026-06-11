@@ -22,7 +22,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // Transaction to create User and Profile
-    const newUser = await prisma.$transaction(async (tx) => {
+    const newUser = await prisma.$transaction(async (tx: any) => {
       const user = await tx.user.create({
         data: {
           email,

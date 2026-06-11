@@ -37,7 +37,7 @@ export class CarbonRepository {
       orderBy: { createdAt: 'desc' }
     });
 
-    return logs.map(log => ({
+    return logs.map((log: any) => ({
       id: log.id,
       userId: log.userId,
       category: log.category as any,
@@ -64,7 +64,7 @@ export class CarbonRepository {
       Shopping: 0
     };
 
-    result.forEach(row => {
+    result.forEach((row: any) => {
       if (row.category in averages) {
         averages[row.category] = row._sum.emissionsKg || 0;
       }
