@@ -14,9 +14,20 @@ dotenv.config();
 
 const app = express();
 
-// Enable CORS for frontend requests
+// Enable CORS for frontend requests (local and GitHub Pages)
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://ryuma69.github.io'
+];
+
 app.use(cors({
-  origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.github.io')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
