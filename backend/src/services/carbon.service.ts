@@ -1,4 +1,4 @@
-import { CarbonLog, GridEmissionsForecast } from 'shared';
+import { CarbonLog, GridEmissionsForecast } from '../shared/index.js';
 import { ICarbonCalculatorService } from '../services/boundaries.js'; // Let's define interfaces in boundaries
 import { CarbonRepository } from '../repositories/carbon.repository.js';
 

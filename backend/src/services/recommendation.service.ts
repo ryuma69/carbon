@@ -1,4 +1,4 @@
-import { UserProfile, ExplainableRecommendation } from 'shared';
+import { UserProfile, ExplainableRecommendation } from '../shared/index.js';
 import { IRecommendationEngine } from './boundaries.js';
 import { CarbonRepository } from '../repositories/carbon.repository.js';
 

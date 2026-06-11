@@ -1,5 +1,5 @@
 import { prisma } from './prisma.js';
-import { CarbonLog, UserProfile } from 'shared';
+import { CarbonLog, UserProfile } from '../shared/index.js';
 
 export class CarbonRepository {
   async createLog(userId: string, data: Omit<CarbonLog, 'id' | 'userId' | 'createdAt'>): Promise<CarbonLog> {

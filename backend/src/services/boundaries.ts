@@ -1,4 +1,4 @@
-import { CarbonLog, UserProfile, GridEmissionsForecast, ExplainableRecommendation } from 'shared';
+import { CarbonLog, UserProfile, GridEmissionsForecast, ExplainableRecommendation } from '../shared/index.js';
 
 export interface ICarbonCalculatorService {
   calculateEmissions(log: Omit<CarbonLog, 'id' | 'userId' | 'createdAt' | 'emissionsKg'>): number;
