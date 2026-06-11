@@ -1,6 +1,6 @@
 import type { CarbonLog, UserProfile, ExplainableRecommendation, GridEmissionsForecast } from 'shared';
 
-const API_BASE = 'http://localhost:4000/api';
+const API_BASE = 'https://carbon-oqvf.onrender.com/api';
 
 class ApiClient {
   private getHeaders(): HeadersInit {
