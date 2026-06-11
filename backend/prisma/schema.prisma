@@ -1,0 +1,47 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  passwordHash String
+  profile      UserProfile?
+  carbonLogs   CarbonLog[]
+}
+
+model UserProfile {
+  id               String  @id @default(uuid())
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String  @unique
+  zipCode          String
+  region           String
+  housingType      String  // 'apartment' | 'house'
+  housingOwnership String  // 'rent' | 'own'
+  heatingType      String  // 'electric' | 'gas' | 'oil'
+  hasEV            Boolean
+  hasGasCar        Boolean
+  commuteDistance  Float
+  primaryMode      String  // 'driving' | 'transit' | 'walking_biking'
+  diet             String  // 'vegan' | 'vegetarian' | 'pescatarian' | 'omnivore' | 'heavy_meat'
+  focusArea        String  @default("general") // 'general' | 'cost_saving' | 'carbon_only' | 'dietary'
+  completedActions String  @default("[]") // JSON stringified array
+  skippedActions   String  @default("[]") // JSON stringified array
+  consecutiveLogs  Int     @default(0)
+}
+
+model CarbonLog {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  category    String   // 'Utilities' | 'Transport' | 'Diet' | 'Shopping'
+  value       Float
+  unit        String
+  emissionsKg Float
+  createdAt   DateTime @default(now())
+}
