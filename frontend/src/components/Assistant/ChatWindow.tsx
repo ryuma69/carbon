@@ -13,9 +13,10 @@ interface Message {
 
 interface ChatWindowProps {
   onLogCompleted: () => void;
+  showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-export const ChatWindow: React.FC<ChatWindowProps> = ({ onLogCompleted }) => {
+export const ChatWindow: React.FC<ChatWindowProps> = ({ onLogCompleted, showNotification }) => {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'model', text: "Hello! I'm Eco-Coach, your carbon footprint advisor. Tell me about your day (e.g., 'I drove 15 miles to work' or 'I cooked a vegan dinner') and I'll help you log the emissions!" }
   ]);
@@ -72,9 +73,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onLogCompleted }) => {
 
       onLogCompleted();
       setAnnouncement(`Successfully logged ${suggestion.value} ${suggestion.unit} of ${suggestion.category} to your dashboard.`);
-      alert(`Success! Logged to dashboard.`);
+      showNotification(`Logged ${suggestion.value} ${suggestion.unit} to dashboard successfully!`, 'success');
     } catch (err) {
-      alert('Failed to log carbon event.');
+      showNotification('Failed to log carbon event.', 'error');
     }
   };
 

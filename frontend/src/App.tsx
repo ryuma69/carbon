@@ -23,6 +23,26 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'actions' | 'assistant'>('dashboard');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   
+  // Toast notifications state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; visible: boolean }>({
+    message: '',
+    type: 'success',
+    visible: false
+  });
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type, visible: true });
+  };
+
+  useEffect(() => {
+    if (toast.visible) {
+      const timer = setTimeout(() => {
+        setToast(prev => ({ ...prev, visible: false }));
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast.visible]);
+  
   // Data stores
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [logs, setLogs] = useState<CarbonLog[]>([]);
@@ -76,7 +96,7 @@ export default function App() {
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!authEmail || !authPassword) {
-      alert('Fields cannot be empty.');
+      showNotification('Fields cannot be empty.', 'error');
       return;
     }
 
@@ -107,7 +127,7 @@ export default function App() {
       setAuthEmail('');
       setAuthPassword('');
     } catch (err: any) {
-      alert(err.message || 'Authentication failed');
+      showNotification(err.message || 'Authentication failed', 'error');
     }
   };
 
@@ -125,9 +145,9 @@ export default function App() {
     try {
       await api.logEmissions(category, value, unit);
       await syncAppData(); // refresh calculations
-      alert('Carbon log registered successfully!');
+      showNotification('Carbon log registered successfully!', 'success');
     } catch (err) {
-      alert('Failed to register carbon log.');
+      showNotification('Failed to register carbon log.', 'error');
     }
   };
 
@@ -137,7 +157,7 @@ export default function App() {
       await api.updateRecommendationState(actionId, type);
       await syncAppData();
     } catch (err) {
-      alert('Failed to update recommendation status.');
+      showNotification('Failed to update recommendation status.', 'error');
     }
   };
 
@@ -147,7 +167,7 @@ export default function App() {
     if (!profile) return;
     const newZip = prompt('Enter your 5-digit ZIP code:', profile.location.zipCode);
     if (!newZip || !/^\d{5}$/.test(newZip)) {
-      alert('Invalid ZIP code.');
+      showNotification('Invalid ZIP code.', 'error');
       return;
     }
 
@@ -160,7 +180,7 @@ export default function App() {
       });
       await syncAppData();
     } catch (err) {
-      alert('Failed to update profile ZIP.');
+      showNotification('Failed to update profile ZIP.', 'error');
     }
   };
 
@@ -391,14 +411,45 @@ export default function App() {
         {activeTab === 'assistant' && (
           <div className="dashboard-grid" style={{ gridTemplateColumns: '5fr 3fr' }}>
             <div className="dashboard-left">
-              <ChatWindow onLogCompleted={syncAppData} />
+              <ChatWindow onLogCompleted={syncAppData} showNotification={showNotification} />
             </div>
             <div className="dashboard-right">
-              <ReceiptScanner onScanCompleted={syncAppData} />
+              <ReceiptScanner onScanCompleted={syncAppData} showNotification={showNotification} />
             </div>
           </div>
         )}
       </main>
+
+      {/* Floating Modern Toast Notification */}
+      {toast.visible && (
+        <div 
+          role="alert"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            background: toast.type === 'success' ? 'rgba(16, 185, 129, 0.95)' : toast.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : 'rgba(37, 99, 235, 0.95)',
+            color: 'white',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            boxShadow: 'var(--glass-shadow)',
+            zIndex: 1000,
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backdropFilter: 'var(--glass-blur)',
+            animation: 'fadeIn 0.2s ease-out',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          {toast.type === 'success' && '✅'}
+          {toast.type === 'error' && '❌'}
+          {toast.type === 'info' && 'ℹ️'}
+          <span>{toast.message}</span>
+        </div>
+      )}
     </div>
   );
 }

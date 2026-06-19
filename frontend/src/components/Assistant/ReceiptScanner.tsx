@@ -3,9 +3,10 @@ import { api } from '../../services/api.client.js';
 
 interface ReceiptScannerProps {
   onScanCompleted: () => void;
+  showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onScanCompleted }) => {
+export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onScanCompleted, showNotification }) => {
   const [loading, setLoading] = useState(false);
   const [parsedData, setParsedData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onScanCompleted 
       const unit = isGas ? 'therms' : 'kWh';
 
       if (value === undefined) {
-        alert('Could not find energy usage values. Log manually instead.');
+        showNotification('Could not find energy usage values. Log manually instead.', 'error');
         return;
       }
 
@@ -51,9 +52,9 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({ onScanCompleted 
       // Clear states
       setParsedData(null);
       onScanCompleted();
-      alert('Successfully recorded utility invoice to database!');
+      showNotification('Successfully recorded utility invoice to database!', 'success');
     } catch (err) {
-      alert('Failed to log carbon event.');
+      showNotification('Failed to log carbon event.', 'error');
     }
   };
 
