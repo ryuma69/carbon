@@ -15,11 +15,17 @@ export class CarbonCalculatorService implements ICarbonCalculatorService {
 
     switch (category) {
       case 'Transport':
-        // value is miles
-        if (unit.toLowerCase() === 'miles' || unit.toLowerCase() === 'mile') {
+        const transportUnit = unit.toLowerCase();
+        if (transportUnit === 'miles' || transportUnit === 'mile') {
           return value * 0.35; // average gasoline vehicle kg/mile
-        } else if (unit.toLowerCase() === 'transit_miles') {
+        } else if (transportUnit === 'transit_miles' || transportUnit === 'transit_mile') {
           return value * 0.09; // train/bus average
+        } else if (transportUnit === 'ev_miles' || transportUnit === 'ev_mile' || transportUnit === 'electric_miles') {
+          return value * 0.111; // electric vehicle average kg/mile (0.3 kWh/mile * 0.37 kg/kWh)
+        } else if (transportUnit === 'km' || transportUnit === 'kilometer' || transportUnit === 'kilometers' || transportUnit === 'kilometre' || transportUnit === 'kilometres') {
+          return value * 0.621371 * 0.35; // Convert km to miles, then apply car factor
+        } else if (transportUnit === 'transit_km' || transportUnit === 'transit_kilometer' || transportUnit === 'transit_kilometers' || transportUnit === 'transit_kilometre' || transportUnit === 'transit_kilometres') {
+          return value * 0.621371 * 0.09; // Convert km to miles, then apply transit factor
         }
         return value * 0.35;
 
@@ -35,11 +41,14 @@ export class CarbonCalculatorService implements ICarbonCalculatorService {
         return value * factor;
 
       case 'Utilities':
-        // value is kWh or therms
-        if (unit.toLowerCase() === 'kwh') {
+        // value is kWh or therms or ccf
+        const utilityUnit = unit.toLowerCase();
+        if (utilityUnit === 'kwh') {
           return value * 0.37; // default grid average (370g/kWh)
-        } else if (unit.toLowerCase() === 'therms' || unit.toLowerCase() === 'therm') {
+        } else if (utilityUnit === 'therms' || utilityUnit === 'therm') {
           return value * 5.3; // natural gas per therm
+        } else if (utilityUnit === 'ccf') {
+          return value * 1.037 * 5.3; // natural gas per ccf (1 ccf ≈ 1.037 therms)
         }
         return value * 0.37;
 

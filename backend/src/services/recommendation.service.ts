@@ -219,23 +219,65 @@ export class RecommendationService implements IRecommendationEngine {
       const impactScore = rec.baseImpact;
       const priorityScore = (wImpact * impactScore) + (wEase * easeScore);
 
+      let impactKgCo2 = rec.impactKgCo2;
+
+      // Personalized impact calculations based on profile inputs
+      if (rec.id === 'transit-commute') {
+        // Swap driving for public transit twice a week (8 days a month)
+        // Savings per mile = 0.35 (car) - 0.09 (transit) = 0.26 kg/mile
+        // Assuming commuteDistanceMiles is round trip:
+        impactKgCo2 = Math.round(profile.transport.commuteDistanceMiles * 8 * 0.26);
+      } else if (rec.id === 'ev-swap') {
+        // Switch to EV: replaces gasoline driving.
+        // Assume user drives commuteDistanceMiles * 22 days/month + 100 miles general driving
+        // Net savings per mile = 0.35 (gas) - 0.111 (EV avg grid) = 0.239 kg/mile
+        const monthlyMiles = (profile.transport.commuteDistanceMiles * 22) + 100;
+        impactKgCo2 = Math.round(monthlyMiles * 0.239);
+      } else if (rec.id === 'meatless-monday') {
+        // Swap to veg for 1 day a week (4.33 days a month)
+        // Daily diet footprint: vegan=2.5, vegetarian=3.8, pescatarian=4.5, omnivore=5.6, heavy_meat=7.2
+        let dailyEmissions = 5.6;
+        if (profile.diet === 'vegan') dailyEmissions = 2.5;
+        else if (profile.diet === 'vegetarian') dailyEmissions = 3.8;
+        else if (profile.diet === 'pescatarian') dailyEmissions = 4.5;
+        else if (profile.diet === 'omnivore') dailyEmissions = 5.6;
+        else if (profile.diet === 'heavy_meat') dailyEmissions = 7.2;
+        
+        impactKgCo2 = Math.round(4.33 * (dailyEmissions - 3.8));
+      } else if (rec.id === 'plant-diet') {
+        // Full vegetarian diet (30 days a month)
+        let dailyEmissions = 5.6;
+        if (profile.diet === 'vegan') dailyEmissions = 2.5;
+        else if (profile.diet === 'vegetarian') dailyEmissions = 3.8;
+        else if (profile.diet === 'pescatarian') dailyEmissions = 4.5;
+        else if (profile.diet === 'omnivore') dailyEmissions = 5.6;
+        else if (profile.diet === 'heavy_meat') dailyEmissions = 7.2;
+        
+        impactKgCo2 = Math.round(30 * (dailyEmissions - 3.8));
+      }
+
+      // Ensure impact remains positive and valid
+      if (impactKgCo2 <= 0) {
+        impactKgCo2 = rec.impactKgCo2;
+      }
+
       // Create Transparent Explanations
       let primaryReason = `Recommended to lower your general carbon footprint.`;
-      let supportingData = `This action saves an estimated ${rec.impactKgCo2}kg of CO2e monthly.`;
+      let supportingData = `This action saves an estimated ${impactKgCo2}kg of CO2e monthly.`;
       let calculationSummary = `Calculated based on standard EPA carbon multipliers.`;
 
       if (rec.category === 'Utilities') {
         primaryReason = `Your home utility heating type is configured as '${profile.housing.heatingType}'.`;
         supportingData = `Because you ${profile.housing.ownership} an ${profile.housing.type}, this operational swap fits your living layout.`;
-        calculationSummary = `Lowering energy usage by 10% translates to a reduction of ${rec.impactKgCo2}kg of CO2e.`;
+        calculationSummary = `Lowering energy usage by 10% translates to a reduction of ${impactKgCo2}kg of CO2e.`;
       } else if (rec.category === 'Transport') {
         primaryReason = `Your daily commute distance is logged as ${profile.transport.commuteDistanceMiles} miles.`;
         supportingData = `Swapping a portion of your ${profile.transport.primaryMode} trips avoids burning petroleum.`;
-        calculationSummary = `Avoiding gasoline emissions for this distance saves around ${rec.impactKgCo2}kg of CO2e.`;
+        calculationSummary = `Avoiding gasoline emissions for this distance saves around ${impactKgCo2}kg of CO2e.`;
       } else if (rec.category === 'Diet') {
         primaryReason = `Your baseline diet type is configured as '${profile.diet}'.`;
         supportingData = `Shifting livestock sourcing is the highest-yield Scope 3 food offset.`;
-        calculationSummary = `Swapping red meat for plant proteins saves ${rec.impactKgCo2}kg of CO2e monthly.`;
+        calculationSummary = `Swapping red meat for plant proteins saves ${impactKgCo2}kg of CO2e monthly.`;
       }
 
       return {
@@ -246,7 +288,7 @@ export class RecommendationService implements IRecommendationEngine {
         impactScore,
         easeScore,
         priorityScore: Number(priorityScore.toFixed(2)),
-        impactKgCo2: rec.impactKgCo2,
+        impactKgCo2: impactKgCo2,
         whyChosen: {
           primaryReason,
           supportingData,

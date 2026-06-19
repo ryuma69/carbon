@@ -179,10 +179,19 @@ export default function App() {
         }}
       >
         <div className="glass-card" style={{ width: '100%', maxWidth: '400px' }}>
-          <h1 style={{ textAlign: 'center', marginBottom: '8px' }} className="title-gradient">EcoLens</h1>
-          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '0.95rem' }}>
+          <h1 style={{ textAlign: 'center', marginBottom: '4px' }} className="title-gradient">EcoLens</h1>
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.95rem' }}>
             AI Carbon Intelligence System
           </p>
+
+          {/* Accessibility dynamic announcement of form view switch */}
+          <div className="sr-only" aria-live="polite">
+            {isLoginView ? 'Switched to Sign In form' : 'Switched to Create Account registration form'}
+          </div>
+
+          <h2 style={{ textAlign: 'center', marginBottom: '24px', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            {isLoginView ? 'Sign In' : 'Register Account'}
+          </h2>
 
           <form onSubmit={handleAuthSubmit}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -195,6 +204,8 @@ export default function App() {
                   onChange={(e) => setAuthEmail(e.target.value)}
                   className="form-input"
                   placeholder="name@domain.com"
+                  autoFocus
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -208,6 +219,7 @@ export default function App() {
                   onChange={(e) => setAuthPassword(e.target.value)}
                   className="form-input"
                   placeholder="••••••••"
+                  autoComplete={isLoginView ? 'current-password' : 'new-password'}
                   required
                 />
               </div>

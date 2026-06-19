@@ -65,10 +65,23 @@ body {
   border: 0;
 }
 
-/* Visible outline ring on focus for accessibility */
-*:focus-visible {
+/* Visible outline ring on focus for interactive elements (WCAG 2.1) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
   outline: 3px solid var(--accent-ring) !important;
   outline-offset: 2px !important;
+}
+
+/* Explicitly disable outline on layout containers */
+html:focus-visible,
+body:focus-visible,
+#root:focus-visible,
+main:focus-visible {
+  outline: none !important;
 }
 
 /* Custom Navigation Skip Link */

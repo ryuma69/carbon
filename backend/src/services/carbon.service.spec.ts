@@ -53,9 +53,25 @@ describe('CarbonCalculatorService', () => {
       const emissions = service.calculateEmissions({
         category: 'Transport',
         value: 50,
-        unit: 'kilometers'
+        unit: 'unknown_unit'
       });
       expect(emissions).toBe(17.5); // 50 * 0.35
+    });
+
+    it('should calculate Transport emissions correctly for km and ev_miles', () => {
+      const kmEmissions = service.calculateEmissions({
+        category: 'Transport',
+        value: 100,
+        unit: 'km'
+      });
+      expect(kmEmissions).toBeCloseTo(100 * 0.621371 * 0.35, 4);
+
+      const evEmissions = service.calculateEmissions({
+        category: 'Transport',
+        value: 100,
+        unit: 'ev_miles'
+      });
+      expect(evEmissions).toBe(11.1); // 100 * 0.111
     });
 
     it('should calculate Diet emissions for various diet types', () => {
@@ -78,12 +94,15 @@ describe('CarbonCalculatorService', () => {
       expect(unknownDiet).toBe(56); // 10 * 5.6 (default omnivore)
     });
 
-    it('should calculate Utilities emissions for kWh and therms', () => {
+    it('should calculate Utilities emissions for kWh, therms, and ccf', () => {
       const electricity = service.calculateEmissions({ category: 'Utilities', value: 200, unit: 'kWh' });
       expect(electricity).toBe(74); // 200 * 0.37
 
       const gas = service.calculateEmissions({ category: 'Utilities', value: 20, unit: 'therms' });
       expect(gas).toBe(106); // 20 * 5.3
+
+      const ccfGas = service.calculateEmissions({ category: 'Utilities', value: 10, unit: 'ccf' });
+      expect(ccfGas).toBeCloseTo(10 * 1.037 * 5.3, 4);
 
       const defaultUtility = service.calculateEmissions({ category: 'Utilities', value: 100, unit: 'gallons' });
       expect(defaultUtility).toBe(37); // 100 * 0.37
