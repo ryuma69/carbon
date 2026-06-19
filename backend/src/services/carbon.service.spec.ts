@@ -2,10 +2,11 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { CarbonCalculatorService } from './carbon.service.js';
 
 // Use vi.hoisted to ensure these mock variables are initialized when vi.mock is evaluated
-const { mockGetCategoryAverages, mockGetLogsByUser } = vi.hoisted(() => {
+const { mockGetCategoryAverages, mockGetLogsByUser, mockHasAnyLogs } = vi.hoisted(() => {
   return {
     mockGetCategoryAverages: vi.fn(),
-    mockGetLogsByUser: vi.fn()
+    mockGetLogsByUser: vi.fn(),
+    mockHasAnyLogs: vi.fn()
   };
 });
 
@@ -15,6 +16,7 @@ vi.mock('../repositories/carbon.repository.js', () => {
       return {
         getCategoryAverages: mockGetCategoryAverages,
         getLogsByUser: mockGetLogsByUser,
+        hasAnyLogs: mockHasAnyLogs,
       };
     })
   };
@@ -140,6 +142,7 @@ describe('CarbonCalculatorService', () => {
 
   describe('predictTrend', () => {
     it('should return fallback data if user has no logs', async () => {
+      mockHasAnyLogs.mockResolvedValue(false);
       mockGetLogsByUser.mockResolvedValue([]);
 
       const result = await service.predictTrend('user-123');
@@ -151,6 +154,7 @@ describe('CarbonCalculatorService', () => {
     });
 
     it('should calculate linear regression trend slope and projection', async () => {
+      mockHasAnyLogs.mockResolvedValue(true);
       const now = new Date();
       const logs = [
         { id: '1', userId: 'user-123', category: 'Transport', value: 10, unit: 'miles', emissionsKg: 200, createdAt: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString() },

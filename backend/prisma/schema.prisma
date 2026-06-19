@@ -44,4 +44,8 @@ model CarbonLog {
   unit        String
   emissionsKg Float
   createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
+

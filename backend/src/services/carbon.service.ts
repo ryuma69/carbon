@@ -76,16 +76,19 @@ export class CarbonCalculatorService implements ICarbonCalculatorService {
   }
 
   async predictTrend(userId: string): Promise<{ trendSlope: number; annualProjectedKg: number; budgetDepletionDate?: Date }> {
-    const logs = await carbonRepo.getLogsByUser(userId);
+    const hasLogs = await carbonRepo.hasAnyLogs(userId);
     
     // Default fallback
-    if (logs.length === 0) {
+    if (!hasLogs) {
       return { trendSlope: 0, annualProjectedKg: 2400 };
     }
 
+    const yearStart = new Date(new Date().getFullYear(), 0, 1);
+    const logsYTD = await carbonRepo.getLogsByUser(userId, yearStart);
+
     // Group logs by week of year to calculate slope
     const weeklyEmissions: Record<number, number> = {};
-    logs.forEach(log => {
+    logsYTD.forEach(log => {
       const date = new Date(log.createdAt);
       const week = Math.ceil((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
       weeklyEmissions[week] = (weeklyEmissions[week] || 0) + log.emissionsKg;
@@ -104,21 +107,17 @@ export class CarbonCalculatorService implements ICarbonCalculatorService {
       trendSlope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
     }
 
-    // Annual Projection
-    const last4WeeksLogs = logs.filter(log => {
-      const diffTime = Math.abs(new Date().getTime() - new Date(log.createdAt).getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays <= 28;
-    });
+    // Annual Projection using last 28 days of logs
+    const fourWeeksAgo = new Date(new Date().getTime() - 28 * 24 * 60 * 60 * 1000);
+    const last4WeeksLogs = await carbonRepo.getLogsByUser(userId, fourWeeksAgo);
 
     const monthlySum = last4WeeksLogs.reduce((acc, log) => acc + log.emissionsKg, 0);
     const weeklyAverage = last4WeeksLogs.length > 0 ? monthlySum / 4 : 50; // default weekly average of 50kg
 
-    const yearStart = new Date(new Date().getFullYear(), 0, 1);
     const daysYTD = Math.max(1, Math.ceil((new Date().getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24)));
     const remainingWeeks = (365 - daysYTD) / 7;
 
-    const emissionsYTD = logs.reduce((acc, log) => acc + log.emissionsKg, 0);
+    const emissionsYTD = logsYTD.reduce((acc, log) => acc + log.emissionsKg, 0);
     const annualProjectedKg = emissionsYTD + (weeklyAverage * remainingWeeks);
 
     // Budget depletion date (Budget Limit = 4500kg per year)

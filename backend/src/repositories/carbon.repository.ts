@@ -48,6 +48,14 @@ export class CarbonRepository {
     }));
   }
 
+  async hasAnyLogs(userId: string): Promise<boolean> {
+    const log = await prisma.carbonLog.findFirst({
+      where: { userId },
+      select: { id: true }
+    });
+    return log !== null;
+  }
+
   async getCategoryAverages(userId: string): Promise<Record<string, number>> {
     const result = await prisma.carbonLog.groupBy({
       by: ['category'],

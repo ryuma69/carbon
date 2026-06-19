@@ -4,6 +4,15 @@ import dotenv from 'dotenv';
 
 // Import middlewares
 import { requireAuth } from './middleware/auth.middleware.js';
+import { 
+  validate, 
+  registerSchema, 
+  loginSchema, 
+  updateProfileSchema, 
+  logEmissionsSchema, 
+  updateActionSchema, 
+  chatSchema 
+} from './middleware/validation.middleware.js';
 
 // Import controllers
 import * as userController from './controllers/user.controller.js';
@@ -34,23 +43,23 @@ app.use(cors({
 app.use(express.json());
 
 // Public Auth routes
-app.post('/api/users/register', userController.register);
-app.post('/api/users/login', userController.login);
+app.post('/api/users/register', validate(registerSchema), userController.register);
+app.post('/api/users/login', validate(loginSchema), userController.login);
 
 // Protected Profile routes
 app.get('/api/users/profile', requireAuth as any, userController.getProfile as any);
-app.put('/api/users/profile', requireAuth as any, userController.updateProfile as any);
+app.put('/api/users/profile', requireAuth as any, validate(updateProfileSchema), userController.updateProfile as any);
 
 // Protected Carbon metrics routes
-app.post('/api/carbon/log', requireAuth as any, carbonController.logEmissions as any);
+app.post('/api/carbon/log', requireAuth as any, validate(logEmissionsSchema), carbonController.logEmissions as any);
 app.get('/api/carbon/logs', requireAuth as any, carbonController.getLogs as any);
 app.get('/api/carbon/summary', requireAuth as any, carbonController.getDashboardSummary as any);
 app.get('/api/carbon/recommendations', requireAuth as any, carbonController.getRecommendations as any);
-app.post('/api/carbon/recommendation/action', requireAuth as any, carbonController.updateActionState as any);
+app.post('/api/carbon/recommendation/action', requireAuth as any, validate(updateActionSchema), carbonController.updateActionState as any);
 app.get('/api/carbon/grid-forecast', requireAuth as any, carbonController.getGridForecast as any);
 
 // Protected Assistant AI routes
-app.post('/api/assistant/chat', requireAuth as any, assistantController.chat as any);
+app.post('/api/assistant/chat', requireAuth as any, validate(chatSchema), assistantController.chat as any);
 app.post('/api/assistant/scan-bill', requireAuth as any, assistantController.scanBill as any);
 
 // Global Error Handler
